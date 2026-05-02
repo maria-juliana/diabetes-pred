@@ -71,28 +71,9 @@ def process_with_duckdb(df):
         FROM df
     """).df()
 
+    df_sql = df_sql[['pregnancies','glucose','bloodpressure','skinthickness','insulin','bmi','diabetespedigreefunction','age', 'outcome', 'high_glucose_flag']] 
+
     return df_sql
-
-
-# def clean_data(df):
-#     print("🧹 Limpando dados...")
-
-#     cols = ['glucose', 'bloodpressure', 'skinthickness', 'insulin', 'bmi']
-
-#     print("\n🚨 Zeros inválidos antes:")
-#     for col in cols:
-#         print(f"{col}: {(df[col] == 0).sum()}")
-
-#     # substituir zeros por NaN
-#     df[cols] = df[cols].replace(0, pd.NA)
-
-#     # imputação com mediana
-#     df = df.fillna(df.median())
-
-#     print("\n✅ Dados limpos!")
-
-#     return df
-
 
 def save_data(df, path="data/processed/processed.parquet"):
     print("💾 Salvando dados processados...")

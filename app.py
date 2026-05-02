@@ -113,7 +113,6 @@ with tab2:
         st.bar_chart(df["bmi"])
 
 
-
         st.write("### Distribuição da variável alvo")
         st.bar_chart(df["outcome"].value_counts())
 
@@ -149,8 +148,8 @@ with tab2:
         except Exception:
             st.warning("⚠️ Dados não disponíveis.")
 
-    if df is not None:
-        st.dataframe(df.describe().round(2))
+    # if df is not None:
+    #     st.dataframe(df.describe().round(2))
         
 # ======================================================
 # ℹ️ TAB 3 — SOBRE

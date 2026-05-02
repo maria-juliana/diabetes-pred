@@ -1,26 +1,22 @@
 """
-train.py — Treina o modelo de análise de sentimento e registra no MLflow/DagsHub.
+train.py — Treinamento + MLflow (DagsHub)
 
-Execute UMA VEZ por experimento, mudando os parâmetros marcados com # MUDE AQUI:
-    python src/train.py
-
-Experimento 1: LogisticRegression (C=1)
-Experimento 2: LogisticRegression (C=0.1)
+Uso:
+    python -m src.train
 """
 
 import os
 import mlflow
 import mlflow.sklearn
-
-from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import StandardScaler
+import pandas as pd
+from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import accuracy_score, f1_score, classification_report, roc_auc_score
-
+from sklearn.metrics import accuracy_score, f1_score
+import joblib
 from dotenv import load_dotenv
-from src.prepare_data import load_and_split
 
-# ── Credenciais ─────────────────────────────────────────
+
+# ── Credenciais ────────────────────────────────────────
 load_dotenv()
 
 DAGSHUB_USER  = os.getenv("DAGSHUB_USER")
@@ -36,73 +32,73 @@ os.environ["MLFLOW_TRACKING_PASSWORD"] = DAGSHUB_TOKEN
 
 mlflow.set_experiment("diabetes-classification")
 
-# ═══════════════════════════════════════
-# PARÂMETROS DO MODELO
-# ═══════════════════════════════════════
-C = 0.1
-RUN_NAME = "baseline-logreg2"
-# ═══════════════════════════════════════
+
+# ═══════════════════════════════════════════════════════
+# MUDE PARA EXPERIMENTOS
+# ═══════════════════════════════════════════════════════
+#C = 1.0
+#RUN_NAME = "exp-1-baseline"
+
+#C = 0.1
+#RUN_NAME = "exp-2-baseline"
+
+C = 10.0
+RUN_NAME = "exp-3-baseline"
+# ═══════════════════════════════════════════════════════
 
 
 def main():
-    X_train, X_test, y_train, y_test = load_and_split()
+    print("📥 Carregando dados processados...")
 
-    print(f"Treino: {len(X_train)} | Teste: {len(X_test)}")
+    df = pd.read_parquet("data/processed/processed.parquet")
+
+    X = df.drop("outcome", axis=1)
+    y = df["outcome"]
+
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y,
+        test_size=0.2,
+        random_state=42,
+        stratify=y
+    )
 
     with mlflow.start_run(run_name=RUN_NAME):
 
-        #Log de parâmetros
+        # parâmetros
         mlflow.log_params({
             "model": "LogisticRegression",
-            "C": C,
-            "scaler": "StandardScaler",
-            "test_size": 0.2,
-            "dataset": "data/diabetes.csv",
+            "C": C
         })
 
-        #Pipeline
-        pipeline = Pipeline([
-            ("scaler", StandardScaler()),
-            ("clf", LogisticRegression(
-                C=C,
-                max_iter=1000
-            )),
-        ])
+        # modelo
+        model = LogisticRegression(max_iter=1000, C=C)
+        model.fit(X_train, y_train)
 
-        #Treino
-        pipeline.fit(X_train, y_train)
+        # avaliação
+        y_pred = model.predict(X_test)
 
-        #Predição
-        y_pred = pipeline.predict(X_test)
-        y_proba = pipeline.predict_proba(X_test)[:, 1]
-
-        #Métricas
         acc = accuracy_score(y_test, y_pred)
-        f1 = f1_score(y_test, y_pred)
-        roc = roc_auc_score(y_test, y_proba)
+        f1  = f1_score(y_test, y_pred)
 
-        print("\n" + "=" * 50)
-        print(classification_report(y_test, y_pred))
-        print("=" * 50)
+        print(f"Acurácia: {acc:.2%}")
+        print(f"F1-score: {f1:.3f}")
 
-        #Log de métricas
         mlflow.log_metrics({
             "accuracy": acc,
-            "f1": f1,
-            "roc_auc": roc,
+            "f1": f1
         })
 
-        #Log do modelo
+        # registrar modelo
         mlflow.sklearn.log_model(
-            sk_model=pipeline,
+            sk_model=model,
             artifact_path="model",
-            registered_model_name="DiabetesClassifier",
+            registered_model_name="DiabetesClassifier"
         )
 
-        print(f"\nRun '{RUN_NAME}' finalizado!")
-        print(f"Acurácia : {acc:.2%}")
-        print(f"F1       : {f1:.3f}")
-        print(f"ROC-AUC  : {roc:.3f}")
+        # salvar local
+        joblib.dump(model, "model.pkl")
+
+        print("✅ Modelo treinado!")
 
 
 if __name__ == "__main__":

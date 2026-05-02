@@ -1,95 +1,161 @@
-"""
-app.py — Interface Streamlit para análise de diabetes.
-
-Execute com:
-    streamlit run app.py
-
-Ou via Docker:
-    docker build --build-arg DAGSHUB_USER=... -t diabetes-app .
-    docker run -p 8501:8501 diabetes-app
-"""
-
 import streamlit as st
 import pandas as pd
-import joblib
+from src.predict import predict
 
-# ── Configuração ───────────────────────────────────────
+# ── Config ─────────────────────────────
 st.set_page_config(
     page_title="Predição de Diabetes",
     page_icon="🩺",
-    layout="centered",
+    layout="wide"
 )
 
-# ── Carregar modelo ────────────────────────────────────
-@st.cache_resource
-def load_model():
-    return joblib.load("model.pkl")
+st.title("🩺 Predição de Diabetes com Machine Learning")
 
-pipeline = load_model()
+st.markdown("""
+Esta aplicação utiliza um modelo treinado com dados clínicos para estimar o risco de diabetes.
 
-# ── Interface ──────────────────────────────────────────
-st.title("🩺 Predição de Risco de Diabetes")
+📌 Preencha os dados na aba **Predição** ou explore os dados em **Análise**.
+""")
 
-st.markdown(
-    "Insira os dados do paciente para estimar a probabilidade de diabetes. "
-    "Modelo treinado com dados clínicos e rastreado no **DagsHub**."
-)
+# ── Tabs ─────────────────────────────
+tab1, tab2, tab3 = st.tabs(["🔮 Predição", "📊 Análise", "ℹ️ Sobre"])
 
-st.divider()
+# ======================================================
+# 🔮 TAB 1 — PREDIÇÃO
+# ======================================================
+with tab1:
 
-# ── Inputs (SLIDERS) ───────────────────────────────────
-st.subheader("Dados do paciente")
+    st.subheader("📋 Dados do paciente")
 
-col1, col2 = st.columns(2)
+    col1, col2 = st.columns(2)
 
-with col1:
-    pregnancies = st.slider("Número de gestações", 0, 20, 1)
-    glucose = st.slider("Glicose", 0, 200, 100)
-    blood_pressure = st.slider("Pressão arterial", 0, 140, 70)
-    skin_thickness = st.slider("Espessura da pele", 0, 100, 20)
+    with col1:
+        pregnancies = st.slider("Gestações", 0, 20, 1)
+        glucose = st.slider("Glicose", 0, 200, 100)
+        bloodpressure = st.slider("Pressão arterial", 0, 140, 70)
+        skinthickness = st.slider("Espessura da pele", 0, 100, 20)
 
-with col2:
-    insulin = st.slider("Insulina", 0, 900, 80)
-    bmi = st.slider("BMI", 0.0, 70.0, 25.0)
-    dpf = st.slider("Diabetes Pedigree Function", 0.0, 2.5, 0.5)
-    age = st.slider("Idade", 10, 100, 30)
+    with col2:
+        insulin = st.slider("Insulina", 0, 900, 80)
+        bmi = st.slider("BMI", 0.0, 70.0, 25.0)
+        dpf = st.slider("Diabetes Pedigree Function", 0.0, 3.0, 0.5)
+        age = st.slider("Idade", 0, 100, 30)
 
-# ── Botão de predição ──────────────────────────────────
-if st.button("Prever risco", type="primary", use_container_width=True):
+    high_glucose_flag = 1 if glucose > 125 else 0
 
-    # Criar dataframe com mesma estrutura do treino
-    input_data = pd.DataFrame([{
-        "Pregnancies": pregnancies,
-        "Glucose": glucose,
-        "BloodPressure": blood_pressure,
-        "SkinThickness": skin_thickness,
-        "Insulin": insulin,
-        "BMI": bmi,
-        "DiabetesPedigreeFunction": dpf,
-        "Age": age,
-    }])
-
-    # Predição
-    pred = pipeline.predict(input_data)[0]
-    proba = pipeline.predict_proba(input_data)[0][1]
-
-    # Resultado
     st.divider()
 
-    if pred == 1:
-        st.error(f"⚠️ Alto risco de diabetes ({proba:.0%})")
-    else:
-        st.success(f"✅ Baixo risco de diabetes ({proba:.0%})")
+    if st.button("🔮 Prever risco", use_container_width=True):
 
-    # Probabilidade detalhada
-    st.markdown("### Probabilidade")
-    st.progress(float(proba), text=f"Risco de diabetes: {proba:.0%}")
+        data = {
+            "pregnancies": pregnancies,
+            "glucose": glucose,
+            "bloodpressure": bloodpressure,
+            "skinthickness": skinthickness,
+            "insulin": insulin,
+            "bmi": bmi,
+            "diabetespedigreefunction": dpf,
+            "age": age,
+            "high_glucose_flag": high_glucose_flag
+        }
 
-st.divider()
+        result = predict(data)
 
-# ── Info ───────────────────────────────────────────────
-st.caption(
-    "Modelo: Logistic Regression + StandardScaler · "
-    "Rastreamento: MLflow + DagsHub · "
-    "Deploy: Docker + Render"
-)
+        pred = result["prediction"]
+        prob = result["probability"]
+
+        st.subheader("Resultado")
+
+        if pred == "Sim":
+            st.error(f"⚠️ Alta probabilidade de diabetes: {prob:.1%}")
+        else:
+            st.success(f"✅ Baixa probabilidade de diabetes: {prob:.1%}")
+
+        st.markdown("### 📈 Classificação de risco")
+
+        if prob > 0.7:
+            st.error("🔴 Alto risco")
+        elif prob > 0.4:
+            st.warning("🟠 Risco moderado")
+        else:
+            st.success("🟢 Baixo risco")
+
+
+# ======================================================
+# 📊 TAB 2 — ANÁLISE EXPLORATÓRIA
+# ======================================================
+with tab2:
+
+    st.subheader("📊 Análise Exploratória")
+
+    try:
+        df = pd.read_parquet("data/processed/processed.parquet")
+
+        st.write("### Estatísticas descritivas")
+        st.dataframe(df.describe().round(2))
+
+        st.write("### Distribuição da glicose")
+        st.bar_chart(df["glucose"])
+
+        st.write("### Distribuição do BMI")
+        st.bar_chart(df["bmi"])
+
+        st.write("### Distribuição da variável alvo")
+        st.bar_chart(df["outcome"].value_counts())
+
+    except:
+        st.warning("Dados não encontrados. Execute o pipeline primeiro.")
+
+
+# ======================================================
+# ℹ️ TAB 3 — SOBRE
+# ======================================================
+with tab3:
+
+    st.subheader("ℹ️ Sobre o projeto")
+
+    st.markdown("""
+### 🧠 Modelo
+- Regressão Logística
+- Treinado com dados clínicos
+- Registrado no MLflow (DagsHub)
+
+### 📊 Features utilizadas
+- Pregnancies
+- Glucose
+- Blood Pressure
+- Skin Thickness
+- Insulin
+- BMI
+- Diabetes Pedigree Function
+- Age
+
+### 📈 Métricas (exemplo)
+- Accuracy: ~75–80%
+- F1-score: ~0.70+
+
+### ⚙️ Pipeline
+- Ingestão: Supabase
+- Processamento: DuckDB
+- Versionamento: DVC
+- Tracking: MLflow (DagsHub)
+- Deploy: Streamlit + Docker + Render
+
+### 📌 Observação
+Esta aplicação é apenas para fins educacionais e não substitui diagnóstico médico.
+""")
+
+    st.write("### 📌 Exemplo de uso")
+
+    st.code("""
+{
+    "pregnancies": 2,
+    "glucose": 130,
+    "bloodpressure": 80,
+    "skinthickness": 25,
+    "insulin": 100,
+    "bmi": 30.5,
+    "diabetespedigreefunction": 0.6,
+    "age": 40
+}
+""")

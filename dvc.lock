@@ -1,0 +1,33 @@
+schema: '2.0'
+stages:
+  ingest:
+    cmd: python -m src.ingestion
+    outs:
+    - path: data/raw/raw.csv
+      hash: md5
+      md5: 3914287bc59641078cd256c7855997e7
+      size: 24059
+  preprocess:
+    cmd: python -m src.preprocessing
+    deps:
+    - path: data/raw/raw.csv
+      hash: md5
+      md5: 3914287bc59641078cd256c7855997e7
+      size: 24059
+    outs:
+    - path: data/processed/processed.parquet
+      hash: md5
+      md5: 676381ef72ccbcc29d7512d078d179d9
+      size: 18558
+  train:
+    cmd: python -m src.train
+    deps:
+    - path: data/processed/processed.parquet
+      hash: md5
+      md5: 676381ef72ccbcc29d7512d078d179d9
+      size: 18558
+    outs:
+    - path: model.pkl
+      hash: md5
+      md5: 23e28e645e80b7aba518d9ae5d2c7c44
+      size: 1391

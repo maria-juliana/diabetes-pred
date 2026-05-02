@@ -106,6 +106,6 @@ if __name__ == "__main__":
     print("\n🔍 Preview:")
     print(df.head())
 
-    # save_raw(df)
+    save_raw(df)
 
     print("\n✅ Ingestão finalizada com sucesso!")

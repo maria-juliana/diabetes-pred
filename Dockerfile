@@ -20,10 +20,7 @@ ENV DAGSHUB_USER=$DAGSHUB_USER
 ENV DAGSHUB_REPO=$DAGSHUB_REPO
 ENV DAGSHUB_TOKEN=$DAGSHUB_TOKEN
 
-# Baixa o modelo mais recente registrado no DagsHub e salva como model.pkl
-# Isso garante que a imagem sempre contém o modelo promovido para produção
 ENV PYTHONPATH=/app
-RUN python -m src.evaluate
 
 # Expõe a porta do Streamlit
 EXPOSE 8501

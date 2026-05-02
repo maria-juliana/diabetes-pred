@@ -19,6 +19,8 @@ Trata-se de um problema de **classificação binária**, onde:
 
 O dataset é o Pima Indians Diabetes encontrado em: https://www.kaggle.com/datasets/uciml/pima-indians-diabetes-database.
 
+A pasta Notebooks possui um notebook .ipynb com uma breve análise exploratória dos dados.
+
 ---
 
 ## Tecnologias Utilizadas
@@ -171,10 +173,14 @@ DAGSHUB_REPO=seu_repositorio_aqui
 DAGSHUB_TOKEN=seu_token_aqui
 
 4. Rodar pipeline completo
+```bash
 dvc repro
+``` 
 
 Para testagem de modelos diferentes em train.py, é preciso modificar C e RUN_NAME e rodar dvc repro a cada mudança.
-→ Talvez seja necessário utilizar dvc repro --force
+```bash
+dvc repro --single-item train --force
+``` 
 Para baixar o modelo com melhor resultado e seguir com o projeto, é preciso reproduzir os seguintes passos:
 
 1. No DagsHub, clique em Go to MLflow UI (botão no canto superior direito da aba Experiments).

@@ -173,7 +173,7 @@ DAGSHUB_TOKEN=seu_token_aqui
 dvc repro
 
 Para testagem de modelos diferentes em train.py, é preciso modificar C e RUN_NAME e rodar dvc repro a cada mudança.
-→ Talvez seja necessário utilizar dvc repro -f
+→ Talvez seja necessário utilizar dvc repro --force
 Para baixar o modelo com melhor resultado e seguir com o projeto, é preciso reproduzir os seguintes passos:
 
 1. No DagsHub, clique em Go to MLflow UI (botão no canto superior direito da aba Experiments).

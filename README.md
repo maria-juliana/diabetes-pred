@@ -116,10 +116,11 @@ Visualizações simples (EDA)
 
 ## Como Rodar o Projeto
 
-Criar conta em (logar com github):
+Criar conta em (indicado logar com GitHub):
+-Kaggle;
 -DagsHub;
 -Supabase;
--Render.
+-Render (obrigatório logar com GitHub).
 
 Baixar Docker
 
@@ -196,13 +197,16 @@ streamlit run app.py
 
 🐳 Executando com Docker 
 
+```
 docker build `
 --build-arg DAGSHUB_USER=seu_usuario `
 --build-arg DAGSHUB_REPO=seu_repositorio `
 --build-arg DAGSHUB_TOKEN=seu_token `
 -t sentimento-app .
-
+``` 
+```
 docker run -p 8501:8501 seu_repositorio
+```
 
 🌐 Deploy com Render
 
@@ -237,11 +241,7 @@ Credenciais armazenadas em .env
 Este projeto é apenas para fins educacionais e não substitui diagnóstico médico.
 
 Este projeto foi criado pelos alunos:
-→ Alexandra Amaro;
-→ Carlos Alberto Mota;
-→ Edney Farias;
-→ Maria Juliana Monte;
-→ Sidney Melo.
+Alexandra Amaro, Carlos Alberto Mota, Edney Farias, Maria Juliana Monte e Sidney Melo.
 
 Para a matéria Infraestrutura em Nuvem para Projetos com Ciência dos Dados ministrada pelo Prof. Dr. Fábio Santos da Silva (fssilva@uea.edu.br)
-Do curso de Pós-Graduação Lato Sensu em Ciência de Dados da Universidade do Estado do Amazonas (UEA).
+do curso de Pós-Graduação Lato Sensu em Ciência de Dados da Universidade do Estado do Amazonas (UEA).

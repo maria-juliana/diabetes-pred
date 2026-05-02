@@ -101,6 +101,21 @@ with tab2:
     # local
     try:
         df = pd.read_parquet("data/processed/processed.parquet")
+        st.write("### Estatísticas descritivas")
+        st.dataframe(df.describe().round(2))
+
+
+        st.write("### Distribuição da glicose")
+        st.bar_chart(df["glucose"])
+
+
+        st.write("### Distribuição do BMI")
+        st.bar_chart(df["bmi"])
+
+
+
+        st.write("### Distribuição da variável alvo")
+        st.bar_chart(df["outcome"].value_counts())
 
     # fallback DagsHub
     except Exception:
@@ -115,6 +130,21 @@ with tab2:
             )
 
             st.info("📡 Dados carregados do DagsHub")
+            st.write("### Estatísticas descritivas")
+            st.dataframe(df.describe().round(2))
+
+
+            st.write("### Distribuição da glicose")
+            st.bar_chart(df["glucose"])
+
+
+            st.write("### Distribuição do BMI")
+            st.bar_chart(df["bmi"])
+
+
+
+            st.write("### Distribuição da variável alvo")
+            st.bar_chart(df["outcome"].value_counts())
 
         except Exception:
             st.warning("⚠️ Dados não disponíveis.")

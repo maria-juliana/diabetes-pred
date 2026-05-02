@@ -1,0 +1,17 @@
+stages:
+  ingest:
+    cmd: python -m src.ingestion
+    outs:
+      - data/raw/raw.csv
+
+  preprocess:
+    cmd: python -m src.preprocessing
+    deps:
+      - data/raw/raw.csv
+    outs:
+      - data/processed/processed.parquet
+
+  train:
+    cmd: python -m src.train
+    deps:
+      - data/processed/processed.parquet

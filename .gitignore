@@ -17,3 +17,9 @@ venv/
 .vscode/
 .idea/
 .DS_Store
+
+data/processed/processed.parquet
+data/raw/raw.csv
+.dvc/config.local
+.dvc/tmp
+.dvc/cache

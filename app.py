@@ -45,7 +45,7 @@ with tab1:
 
     st.divider()
 
-    if st.button("🔮 Prever risco", use_container_width=True):
+    if st.button("Qual o risco de diabetes?", use_container_width=True):
 
         data = {
             "pregnancies": pregnancies,

@@ -198,6 +198,14 @@ def load_model():
     )
     return model
 ```
+
+→ Antes de seguir para a rodagem do aplicativo, dar upload da pasta data/ no DagsHub:
+
+```bash
+dagshub upload seu_usuario/seu_repositorio data/ data/
+```
+Automaticamente ocorrerá um redirecionamento para a página do DagsHub solicitando autorização.
+
 5. Rodar aplicação
 streamlit run app.py
 
@@ -208,10 +216,10 @@ docker build `
 --build-arg DAGSHUB_USER=seu_usuario `
 --build-arg DAGSHUB_REPO=seu_repositorio `
 --build-arg DAGSHUB_TOKEN=seu_token `
--t sentimento-app .
+-t diabetes-app .
 ``` 
 ```
-docker run -p 8501:8501 seu_repositorio
+docker run -p 8501:8501 diabetes-app
 ```
 
 🌐 Deploy com Render

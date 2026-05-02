@@ -1,6 +1,10 @@
 import streamlit as st
 import pandas as pd
 from src.predict import predict
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
 
 # ── Config ─────────────────────────────
 st.set_page_config(
@@ -88,25 +92,36 @@ with tab2:
 
     st.subheader("📊 Análise Exploratória")
 
+    df = None
+
+    user = os.getenv("DAGSHUB_USER")
+    repo = os.getenv("DAGSHUB_REPO")
+    token = os.getenv("DAGSHUB_TOKEN")
+
+    # local
     try:
         df = pd.read_parquet("data/processed/processed.parquet")
 
-        st.write("### Estatísticas descritivas")
+    # fallback DagsHub
+    except Exception:
+        try:
+            url = f"https://dagshub.com/{user}/{repo}/raw/main/data/processed/processed.parquet"
+
+            df = pd.read_parquet(
+                url,
+                storage_options={
+                    "Authorization": f"Bearer {token}"
+                }
+            )
+
+            st.info("📡 Dados carregados do DagsHub")
+
+        except Exception:
+            st.warning("⚠️ Dados não disponíveis.")
+
+    if df is not None:
         st.dataframe(df.describe().round(2))
-
-        st.write("### Distribuição da glicose")
-        st.bar_chart(df["glucose"])
-
-        st.write("### Distribuição do BMI")
-        st.bar_chart(df["bmi"])
-
-        st.write("### Distribuição da variável alvo")
-        st.bar_chart(df["outcome"].value_counts())
-
-    except:
-        st.warning("Dados não encontrados. Execute o pipeline primeiro.")
-
-
+        
 # ======================================================
 # ℹ️ TAB 3 — SOBRE
 # ======================================================

@@ -1,13 +1,14 @@
 stages:
+  download_data:
+    cmd: python -m data.download_data
+    outs:
+      - data/raw/diabetes.csv
+
   ingest:
     cmd: python -m src.ingestion
-    outs:
-      - data/raw/raw.csv
 
   preprocess:
     cmd: python -m src.preprocessing
-    deps:
-      - data/raw/raw.csv
     outs:
       - data/processed/processed.parquet
 

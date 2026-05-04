@@ -36,14 +36,17 @@ mlflow.set_experiment("diabetes-classification")
 # ═══════════════════════════════════════════════════════
 # MUDE PARA EXPERIMENTOS
 # ═══════════════════════════════════════════════════════
-#C = 1.0
-#RUN_NAME = "exp-1-baseline"
+C = 1.0
+RUN_NAME = "exp-1-baseline"
+CLASS_WEIGHT = None
 
 #C = 0.1
 #RUN_NAME = "exp-2-baseline"
+#CLASS_WEIGHT = "balanced"
 
-C = 10.0
-RUN_NAME = "exp-3-baseline"
+#C = 10.0
+#RUN_NAME = "exp-3-baseline"
+#CLASS_WEIGHT = None
 # ═══════════════════════════════════════════════════════
 
 
@@ -67,11 +70,12 @@ def main():
         # parâmetros
         mlflow.log_params({
             "model": "LogisticRegression",
-            "C": C
+            "C": C,
+            "class_weight": CLASS_WEIGHT
         })
 
         # modelo
-        model = LogisticRegression(max_iter=1000, C=C)
+        model = LogisticRegression(max_iter=1000, C=C, class_weight=CLASS_WEIGHT)
         model.fit(X_train, y_train)
 
         # avaliação

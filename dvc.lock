@@ -2,29 +2,79 @@ schema: '2.0'
 stages:
   ingest:
     cmd: python -m src.ingestion
+    deps:
+    - path: .env
+      hash: md5
+      md5: fb7d2f84ff8660594e14954d0bc4c990
+      size: 976
+    - path: data/raw/diabetes.csv
+      hash: md5
+      md5: f2906818eda8fcfc8f8416557ab1e6df
+      size: 23873
+    - path: src/ingestion.py
+      hash: md5
+      md5: 7f1b065e2ac8b5d7f0d19aeac6077aab
+      size: 2848
   preprocess:
     cmd: python -m src.preprocessing
-    outs:
-    - path: data/processed/processed.parquet
-      hash: md5
-      md5: ff9de0436a44697a6290b1f8060ddbf7
-      size: 19078
-  train:
-    cmd: python -m src.train
     deps:
+    - path: .env
+      hash: md5
+      md5: fb7d2f84ff8660594e14954d0bc4c990
+      size: 976
+    - path: src/preprocessing.py
+      hash: md5
+      md5: 7231e9e4198f61bf8df56ea8e4a1bc5c
+      size: 2889
+    outs:
     - path: data/processed/processed.parquet
       hash: md5
       md5: 676381ef72ccbcc29d7512d078d179d9
       size: 18558
+  train:
+    cmd: python -m src.train
+    deps:
+    - path: .env
+      hash: md5
+      md5: fb7d2f84ff8660594e14954d0bc4c990
+      size: 976
+    - path: data/processed/processed.parquet
+      hash: md5
+      md5: 676381ef72ccbcc29d7512d078d179d9
+      size: 18558
+    - path: src/train.py
+      hash: md5
+      md5: 9bd3c2a7cfe2dc7f93c8dba20b74f43a
+      size: 2930
     outs:
     - path: model.pkl
       hash: md5
-      md5: 23e28e645e80b7aba518d9ae5d2c7c44
+      md5: 1cacff17fcebd4493ae0f46e5e63b6c9
       size: 1391
   download_data:
     cmd: python -m data.download_data
+    deps:
+    - path: .env
+      hash: md5
+      md5: fb7d2f84ff8660594e14954d0bc4c990
+      size: 976
+    - path: data/download_data.py
+      hash: md5
+      md5: acb421c95b140d12a590c023ffe43a39
+      size: 1465
     outs:
     - path: data/raw/diabetes.csv
       hash: md5
       md5: f2906818eda8fcfc8f8416557ab1e6df
       size: 23873
+  validate:
+    cmd: python -m src.validate_env
+    deps:
+    - path: .env
+      hash: md5
+      md5: fb7d2f84ff8660594e14954d0bc4c990
+      size: 976
+    - path: src/validate_env.py
+      hash: md5
+      md5: 30e49df4c5d229ee09f3d446c00d53a0
+      size: 1170

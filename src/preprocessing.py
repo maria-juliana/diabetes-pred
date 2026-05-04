@@ -22,12 +22,19 @@ SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 def fetch_data(table="diabetes"):
     print("🔗 Conectando ao Supabase...")
 
+    if not SUPABASE_URL or not SUPABASE_KEY:
+        raise ValueError("SUPABASE_URL/SUPABASE_KEY não definidos no ambiente.")
+
     sb = create_client(SUPABASE_URL, SUPABASE_KEY)
 
     res = sb.table(table).select("*").execute()
     df = pd.DataFrame(res.data)
 
-    df.columns = df.columns.str.lower()
+    if df.empty:
+        raise ValueError(f"Nenhum dado retornado da tabela '{table}' no Supabase.")
+
+    # Garante nomes de colunas em string antes de normalizar
+    df.columns = [str(col).strip().lower() for col in df.columns]
 
     print(f"📊 Dados carregados: {df.shape}")
     return df
@@ -67,7 +74,7 @@ def process_with_duckdb(df):
             CASE
                 WHEN glucose > 125 THEN 1
                 ELSE 0
-            END AS high_glucose_flag,
+            END AS high_glucose_flag
         FROM df
     """).df()
 

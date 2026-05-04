@@ -72,11 +72,21 @@ Separação entre código e dados
 
 O modelo foi treinado utilizando Regressão Logística, com tracking de:
 
-Parâmetros
-Métricas
-Artefatos
+- Parâmetros
+- Métricas
+- Artefatos
 
 Foram realizados múltiplos experimentos variando hiperparâmetros.
+
+Exemplo dos parâmetros de treinamento configurados em `src/train.py`:
+
+```python
+C = 0.1
+RUN_NAME = "exp-2-baseline"
+CLASS_WEIGHT = "balanced"
+```
+
+Para testar novos experimentos, altere os valores diretamente em `src/train.py` e execute o script novamente. Mudar `RUN_NAME` ajuda a diferenciar cada execução no MLflow, enquanto `C` e `CLASS_WEIGHT` controlam a regularização e o tratamento de classes desbalanceadas.
 
 ### 5. Model Registry e teste - train.py/predict.py
 
@@ -87,8 +97,8 @@ O melhor modelo foi registrado no MLflow (via DagsHub) e promovido para Producti
 Algoritmo: Regressão Logística
 Tipo: Classificação binária
 Métricas (aproximadas)
-Accuracy: ~70-71%
-F1-score: ~0.54-0.56
+Accuracy: ~70-72%
+F1-score: ~0.54-0.63
 
 🔮 Inferência
 
@@ -126,7 +136,7 @@ Criar conta em (indicado logar com GitHub):
 
 Baixar Docker
 
-1. Criar tabela no banco do Supabase:
+1. Criar tabela no banco do Supabase
 
 - Criação de um projeto em app.supabase.com
 - No editor SQL do projeto (CTRL+E) adicionar e rodar:
@@ -144,43 +154,104 @@ age integer,
 outcome integer
 )
 ```
-2. Criação de novo repositório no DagsHub
 
-3. Clonar repositório
-git clone <repo>
-cd <nome repo>
+2. Fazer fork do repositório da Maria no GitHub
 
-4. Instalar dependências
+No GitHub, abra o repositório original e clique em `Fork` para criar uma cópia na sua conta:
+https://github.com/maria-juliana/diabetes-pred
+
+3. Clonar seu fork
+```bash
+git clone https://github.com/seu_usuario/diabetes-pred.git
+cd diabetes-pred
+```
+
+4. Criar e ativar ambiente virtual
+
+Linux/macOS:
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install --upgrade pip
 pip install -r requirements.txt
+```
+
+Windows (PowerShell):
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+pip install -r requirements.txt
+```
+
+5. Configurar variáveis de ambiente
+```bat
+copy .env.example .env
+```
 
 → Em caso de conflito entre DagsHub e Supabase, tentar dar update no pip.
 
-5. Configurar variáveis de ambiente
-copy .env.example .env
+Preencha no `.env`:
 
 - Cópia da URL do projeto no Supabase
 - Token de acesso: app.supabase.com → Project Settings → API Keys → Legacy anon → chave anon/public
 
+
+```env
 SUPABASE_URL=sua_url_aqui
 SUPABASE_KEY=sua_key_aqui
-
+```
 - Usuário no DagsHub
 - Nome do repositório
 - Token de acesso: dagshub.com → User Settings → Tokens → New Token
+```env
 
 DAGSHUB_USER=seu_usuario_aqui
 DAGSHUB_REPO=seu_repositorio_aqui
 DAGSHUB_TOKEN=seu_token_aqui
+```
 
-4. Rodar pipeline completo
+- `KAGGLE_USERNAME` e `KAGGLE_KEY` (Kaggle > Account > API > Create New Token)
+
+6. Configurar remote do DVC no DagsHub (sua conta)
+```bash
+dvc remote add -d origin https://dagshub.com/seu_usuario/seu_repositorio.dvc
+dvc remote modify --local origin auth basic
+dvc remote modify --local origin user seu_usuario
+dvc remote modify --local origin password seu_token
+```
+
+Se você clonou o projeto de outra pessoa e o `origin` já veio configurado para outra conta, rode:
+```bash
+dvc remote remove origin
+dvc remote add -d origin https://dagshub.com/seu_usuario/seu_repositorio.dvc
+dvc remote modify --local origin auth basic
+dvc remote modify --local origin user seu_usuario
+dvc remote modify --local origin password seu_token
+```
+
+7. Validar ambiente antes do pipeline
+```bash
+dvc repro validate
+```
+
+8. Rodar pipeline completo com DVC
 ```bash
 dvc repro
 ``` 
 
-Para testagem de modelos diferentes em train.py, é preciso modificar C e RUN_NAME e rodar dvc repro a cada mudança.
+1. Publicar dados versionados no DagsHub
+```bash
+dvc push
+```
+
+Para testar modelos diferentes em `src/train.py`, altere `C` e `RUN_NAME` e reexecute somente o stage de treino:
 ```bash
 dvc repro --single-item train --force
 ``` 
+
+10. Configurar alias `production` no Model Registry (obrigatório antes da aplicação)
+
 Para baixar o modelo com melhor resultado e seguir com o projeto, é preciso reproduzir os seguintes passos:
 
 1. No DagsHub, clique em Go to MLflow UI (botão no canto superior direito da aba Experiments).
@@ -199,15 +270,17 @@ def load_model():
     return model
 ```
 
-→ Antes de seguir para a rodagem do aplicativo, dar upload da pasta data/ no DagsHub:
+11. Rodar aplicação
+```bash
+streamlit run app.py
+```
+
+Opcional: upload manual da pasta `data/` no DagsHub (não substitui `dvc push`):
 
 ```bash
 dagshub upload seu_usuario/seu_repositorio data/ data/
 ```
 Automaticamente ocorrerá um redirecionamento para a página do DagsHub solicitando autorização.
-
-5. Rodar aplicação
-streamlit run app.py
 
 🐳 Executando com Docker 
 
@@ -224,17 +297,11 @@ docker run -p 8501:8501 diabetes-app
 
 🌐 Deploy com Render
 
-Criar um repositório no GitHub:
-git init
-git add .
-git commit -m "o que quiser descrever sobre seu repositório"
-git branch -M main
-git remote add origin URL DO REPOSITÓRIO
-git push -u origin main
+Use o fork criado na etapa 2 (`https://github.com/seu_usuario/diabetes-pred`).
 
 1. Acesse render.com e faça login com o GitHub;
 2. Clique em New → Web Service;
-3. Conecte seu repositório;
+3. Conecte o seu fork;
 4. Confirme que o Runtime foi detectado como Docker;
 → O Render detecta automaticamente o EXPOSE 8501 do Dockerfile;
 5. Na seção Environment Variables, adicione as três variáveis:

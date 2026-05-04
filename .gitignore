@@ -20,6 +20,7 @@ venv/
 
 data/processed/processed.parquet
 data/raw/raw.csv
+data/raw/diabetes.csv
 .dvc/config.local
 .dvc/tmp
 .dvc/cache

@@ -15,11 +15,12 @@ Dependências necessárias:
 
 import os
 import pandas as pd
-from kaggle.api.kaggle_api_extended import KaggleApi
+from dotenv import load_dotenv
 
 
 def download_dataset():
     print("📥 Baixando dataset do Kaggle...")
+    from kaggle.api.kaggle_api_extended import KaggleApi
 
     api = KaggleApi()
     api.authenticate()
@@ -55,5 +56,13 @@ def load_and_describe():
 
 
 if __name__ == "__main__":
+    load_dotenv()
+
+    if not os.getenv("KAGGLE_USERNAME") or not os.getenv("KAGGLE_KEY"):
+        raise RuntimeError(
+            "Credenciais do Kaggle não encontradas. Defina KAGGLE_USERNAME e "
+            "KAGGLE_KEY no .env, ou configure ~/.config/kaggle/kaggle.json."
+        )
+
     download_dataset()
     load_and_describe()
